@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using NuGet.Protocol.Core.Types;
 using StoreAppAPI.DataSet;
 using StoreAppAPI.Model;
 
@@ -45,15 +50,16 @@ namespace StoreAppAPI.Controllers
         // PUT: api/Login/5
         //To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut]
-        public async Task<ActionResult> PutLoginModel(LoginModel loginmodel)
+        public async Task<ActionResult<LoginModel>> PutLoginModel(LoginModel loginmodel)
         {
             try {
                 var user = await _context.Login_Details.FindAsync(loginmodel.UserName);
+                return CreateToken(loginmodel);
             }
             catch(Exception ex) {
                 return BadRequest(ex);
             }
-            return NoContent();
+            //return NoContent();
         }
 
         // POST: api/Login
@@ -65,6 +71,7 @@ namespace StoreAppAPI.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                
             }
             catch (DbUpdateException)
             {
@@ -78,7 +85,7 @@ namespace StoreAppAPI.Controllers
                 }
             }
 
-            return Ok(loginModel.UserName);
+            return Ok(loginModel);
         }
 
         // DELETE: api/Login/5
@@ -100,6 +107,26 @@ namespace StoreAppAPI.Controllers
         private bool LoginModelExists(string id)
         {
             return _context.Login_Details.Any(e => e.UserName == id);
+        }
+
+        private ActionResult<LoginModel> CreateToken(LoginModel _user)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenkey = Encoding.UTF8.GetBytes("1234567890123456...");
+            var TokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(
+                    new Claim[]
+                    {
+                            new Claim(ClaimTypes.Name,Convert.ToString(_user.UserName)),
+                            new Claim(ClaimTypes.Role,Convert.ToString(_user.Role)),
+                    }),
+                Expires = DateTime.UtcNow.AddDays(1),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenkey), SecurityAlgorithms.HmacSha256)
+            };
+            var securityToken = tokenHandler.CreateToken(TokenDescriptor);
+            var token = tokenHandler.WriteToken(securityToken);
+            return Ok(token);
         }
     }
 }
