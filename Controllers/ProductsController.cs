@@ -29,27 +29,41 @@ namespace StoreAppAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductModel>>> GetProduct_Details()
         {
-            return await _context.Product_Details.ToListAsync();
+            try
+            {
+                return await _context.Product_Details.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // GET: api/Products/5
         [HttpGet("{id}")]
         public async Task<ActionResult<IEnumerable<ProductModel>>> GetProductModel(int id)
         {
-            if (id == -1)
-                return await _context.Product_Details.Where(a => a.ProductStatus == true).ToListAsync();
-            else if (id == -2)
-                return await _context.Product_Details.Where(a => a.ProductStatus == false).ToListAsync();
-            else
+            try
             {
-                var productModel = await _context.Product_Details.Where(a => a.Id == id).ToListAsync();
-
-                if (productModel == null)
+                if (id == -1)
+                    return await _context.Product_Details.Where(a => a.ProductStatus == true).ToListAsync();
+                else if (id == -2)
+                    return await _context.Product_Details.Where(a => a.ProductStatus == false).ToListAsync();
+                else
                 {
-                    return NotFound();
-                }
+                    var productModel = await _context.Product_Details.Where(a => a.Id == id).ToListAsync();
 
-                return productModel;
+                    if (productModel == null)
+                    {
+                        return NotFound();
+                    }
+
+                    return productModel;
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
         }
 
@@ -89,45 +103,59 @@ namespace StoreAppAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<ProductModel>> PostProductModel(ProductdetailsDTO productModel)
         {
-            var duplicate = (from d in _context.Product_Details where d.ProductName == productModel.ProductName select d).ToList();
-            var duplicate_1 = (from d in _context.Product_Details where d.ProductCode == productModel.ProductCode select d).ToList();
-
-            if (duplicate.Count > 0 && duplicate_1.Count >0)
+            try
             {
-                return BadRequest("Product Name & Product Code already present");
-            }
-            else if(duplicate_1.Count > 0)
-            {
-                return BadRequest(productModel.ProductCode+" Product Code already present");
-            }
-            else if(duplicate.Count > 0)
-            {
-                return BadRequest(productModel.ProductName+" Product Name already present");
-            }
+                var duplicate = (from d in _context.Product_Details where d.ProductName == productModel.ProductName select d).ToList();
+                var duplicate_1 = (from d in _context.Product_Details where d.ProductCode == productModel.ProductCode select d).ToList();
 
-            var productdetails = mapper.Map<ProductModel>(productModel);
-            _context.Product_Details.Add(productdetails);
-            await _context.SaveChangesAsync();
+                if (duplicate.Count > 0 && duplicate_1.Count > 0)
+                {
+                    return BadRequest("Product Name & Product Code already present");
+                }
+                else if (duplicate_1.Count > 0)
+                {
+                    return BadRequest(productModel.ProductCode + " Product Code already present");
+                }
+                else if (duplicate.Count > 0)
+                {
+                    return BadRequest(productModel.ProductName + " Product Name already present");
+                }
 
-            return productdetails;
-            //CreatedAtAction("GetProductModel", new { id = productdetails.Id }, productModel);
+                var productdetails = mapper.Map<ProductModel>(productModel);
+                _context.Product_Details.Add(productdetails);
+                await _context.SaveChangesAsync();
+
+                return productdetails;
+                //CreatedAtAction("GetProductModel", new { id = productdetails.Id }, productModel);
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // DELETE: api/Products/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProductModel(int id)
         {
-            var productModel = await _context.Product_Details.FindAsync(id);
-            if (productModel == null)
+            try
             {
-                return NotFound();
+                var productModel = await _context.Product_Details.FindAsync(id);
+                if (productModel == null)
+                {
+                    return NotFound("Product not found");
+                }
+                productModel.ProductStatus = false;
+
+                //_context.Product_Details.Remove(productModel);
+                await _context.SaveChangesAsync();
+
+                return Ok(productModel);
             }
-            productModel.ProductStatus = false;
-
-            //_context.Product_Details.Remove(productModel);
-            await _context.SaveChangesAsync();
-
-            return Ok(productModel);
+            catch (Exception ex)
+            {
+                   return BadRequest(ex.Message);
+            }
         }
 
         private bool ProductModelExists(int id)

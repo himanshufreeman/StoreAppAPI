@@ -25,21 +25,35 @@ namespace StoreAppAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EmployeeModel>>> GetEmployee_Details()
         {
-            return await _context.Employee_Details.ToListAsync();
+            try
+            {
+                return await _context.Employee_Details.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // GET: api/Employees/5
         [HttpGet("{id}")]
         public async Task<ActionResult<EmployeeModel>> GetEmployeeModel(int id)
         {
-            var employeeModel = await _context.Employee_Details.FindAsync(id);
-
-            if (employeeModel == null)
+            try
             {
-                return NotFound();
-            }
+                var employeeModel = await _context.Employee_Details.FindAsync(id);
 
-            return employeeModel;
+                if (employeeModel == null)
+                {
+                    return NotFound("Employee not found");
+                }
+
+                return employeeModel;
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // PUT: api/Employees/5
@@ -78,10 +92,24 @@ namespace StoreAppAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<EmployeeModel>> PostEmployeeModel(EmployeeModel employeeModel)
         {
-            _context.Employee_Details.Add(employeeModel);
-            //await _context.SaveChangesAsync();
-
-            return Ok(employeeModel);
+            try
+            {
+                var duplicate = (from d in _context.Employee_Details where d.Phone == employeeModel.Phone select d).ToList();
+                if (duplicate.Count > 0)
+                {
+                    return BadRequest("Employee already present");
+                }
+                else
+                {
+                    _context.Employee_Details.Add(employeeModel);
+                    await _context.SaveChangesAsync();
+                    return Ok(employeeModel);
+                }
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // DELETE: api/Employees/5

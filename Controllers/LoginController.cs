@@ -47,45 +47,45 @@ namespace StoreAppAPI.Controllers
         //    return loginModel;
         //}
 
-        // PUT: api/Login/5
+        // PUT: api/Login
         //To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut]
         public async Task<ActionResult<LoginModel>> PutLoginModel(LoginModel loginmodel)
         {
             try {
                 var user = await _context.Login_Details.FindAsync(loginmodel.UserName);
-                return CreateToken(loginmodel);
+                if(user == null) { return BadRequest("User not present"); }
+                else if(user.Password == loginmodel.Password) { return CreateToken(user); }
+                else { return BadRequest("Password wrong"); }
+                
             }
             catch(Exception ex) {
                 return BadRequest(ex);
             }
-            //return NoContent();
         }
 
         // POST: api/Login
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<LoginModel>> PostLoginModel(LoginModel loginModel)
+        public async Task<ActionResult<LoginModel>> PostLoginModel(LoginModel loginmodel)
         {
-            _context.Login_Details.Add(loginModel);
+            
             try
             {
-                await _context.SaveChangesAsync();
-                
-            }
-            catch (DbUpdateException)
-            {
-                if (LoginModelExists(loginModel.UserName))
-                {
-                    return Conflict();
-                }
+                var user = (from d in _context.Login_Details where d.UserName == loginmodel.UserName select d).ToList(); ;
+                if (user.Count > 0) { return BadRequest("User not present"); }
                 else
                 {
-                    throw;
+                    _context.Login_Details.Add(loginmodel);
+                    await _context.SaveChangesAsync();
+                    return Ok(loginmodel);
                 }
             }
-
-            return Ok(loginModel);
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+            
         }
 
         // DELETE: api/Login/5
