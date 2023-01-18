@@ -54,8 +54,12 @@ namespace StoreAppAPI.Controllers
         {
             try {
                 var user = await _context.Login_Details.FindAsync(loginmodel.UserName);
-                if(user == null) { return BadRequest("User not present"); }
-                else if(user.Password == loginmodel.Password) { return CreateToken(user); }
+                if (user == null) { return BadRequest("User not present"); }
+                else if (user.Role != loginmodel.Role) { return BadRequest("User not present with this role "+loginmodel.Role); }
+                else if(user.Password == loginmodel.Password) { 
+                    var token = CreateToken(user);
+                    return Ok(new { Token = token }); 
+                }
                 else { return BadRequest("Password wrong"); }
                 
             }
@@ -104,12 +108,12 @@ namespace StoreAppAPI.Controllers
         //    return NoContent();
         //}
 
-        private bool LoginModelExists(string id)
-        {
-            return _context.Login_Details.Any(e => e.UserName == id);
-        }
+        //private bool LoginModelExists(string id)
+        //{
+        //    return _context.Login_Details.Any(e => e.UserName == id);
+        //}
 
-        private ActionResult<LoginModel> CreateToken(LoginModel _user)
+        private string CreateToken(LoginModel _user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var tokenkey = Encoding.UTF8.GetBytes("1234567890123456...");
@@ -121,12 +125,11 @@ namespace StoreAppAPI.Controllers
                             new Claim(ClaimTypes.Name,Convert.ToString(_user.UserName)),
                             new Claim(ClaimTypes.Role,Convert.ToString(_user.Role)),
                     }),
-                Expires = DateTime.UtcNow.AddDays(1),
+                Expires = DateTime.UtcNow.AddMinutes(10),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenkey), SecurityAlgorithms.HmacSha256)
             };
             var securityToken = tokenHandler.CreateToken(TokenDescriptor);
-            var token = tokenHandler.WriteToken(securityToken);
-            return Ok(token);
+            return (tokenHandler.WriteToken(securityToken));
         }
     }
 }

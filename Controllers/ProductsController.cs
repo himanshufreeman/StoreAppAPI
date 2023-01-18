@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,7 @@ namespace StoreAppAPI.Controllers
         }
 
         // GET: api/Products
+        //[Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductModel>>> GetProduct_Details()
         {
@@ -40,6 +42,7 @@ namespace StoreAppAPI.Controllers
         }
 
         // GET: api/Products/5
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<IEnumerable<ProductModel>>> GetProductModel(int id)
         {
