@@ -58,7 +58,7 @@ namespace StoreAppAPI.Controllers
                 else if (user.Role != loginmodel.Role) { return BadRequest("User not present with this role "+loginmodel.Role); }
                 else if(user.Password == loginmodel.Password) { 
                     var token = CreateToken(user);
-                    return Ok(new { Token = token }); 
+                    return Ok(new { Token = token, UserName = user.UserName, Role = user.Role }) ; 
                 }
                 else { return BadRequest("Password wrong"); }
                 
@@ -125,7 +125,7 @@ namespace StoreAppAPI.Controllers
                             new Claim(ClaimTypes.Name,Convert.ToString(_user.UserName)),
                             new Claim(ClaimTypes.Role,Convert.ToString(_user.Role)),
                     }),
-                Expires = DateTime.UtcNow.AddMinutes(10),
+                Expires = DateTime.UtcNow.AddMinutes(15),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenkey), SecurityAlgorithms.HmacSha256)
             };
             var securityToken = tokenHandler.CreateToken(TokenDescriptor);

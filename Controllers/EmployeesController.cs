@@ -7,9 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StoreAppAPI.DataSet;
 using StoreAppAPI.Model;
+using StoreAppAPI.Filters;
+using Microsoft.AspNetCore.Authorization;
 
 namespace StoreAppAPI.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class EmployeesController : ControllerBase
@@ -22,6 +25,8 @@ namespace StoreAppAPI.Controllers
         }
 
         // GET: api/Employees
+        //[JwtAuthorizationFilter("admin", "user")]
+        
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EmployeeModel>>> GetEmployee_Details()
         {
@@ -102,7 +107,7 @@ namespace StoreAppAPI.Controllers
                 else
                 {
                     _context.Employee_Details.Add(employeeModel);
-                    await _context.SaveChangesAsync();
+                    //await _context.SaveChangesAsync();
                     return Ok(employeeModel);
                 }
             }

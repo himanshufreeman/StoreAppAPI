@@ -27,7 +27,6 @@ namespace StoreAppAPI.Controllers
         }
 
         // GET: api/Products
-        //[Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductModel>>> GetProduct_Details()
         {
@@ -42,7 +41,6 @@ namespace StoreAppAPI.Controllers
         }
 
         // GET: api/Products/5
-        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<IEnumerable<ProductModel>>> GetProductModel(int id)
         {
@@ -103,6 +101,7 @@ namespace StoreAppAPI.Controllers
 
         // POST: api/Products
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<ProductModel>> PostProductModel(ProductdetailsDTO productModel)
         {
@@ -138,6 +137,7 @@ namespace StoreAppAPI.Controllers
         }
 
         // DELETE: api/Products/5
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProductModel(int id)
         {

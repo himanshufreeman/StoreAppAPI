@@ -81,7 +81,7 @@ namespace StoreAppAPI.Controllers
             try {
                 billModel.BillTime = DateTime.Now;
                 _context.Bill_Details.Add(billModel);
-                await _context.SaveChangesAsync();
+                //await _context.SaveChangesAsync();
 
                 return billModel;
             }
